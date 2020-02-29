@@ -13,7 +13,7 @@ from ..etc import conf
 import pandas as pd
 import re
 import datetime
-import os.path
+import os
 import requests
 
 def get_request_params(location):
@@ -60,19 +60,19 @@ def get_response(params):
     '''
     response = requests.get(conf.API_URL, params=params)
     
-    print 'code:'+ str(response.status_code)
+    print('code:'+ str(response.status_code))
     if response.status_code == 200:
         #print '******************'
         #print 'headers:'+ str(response.headers)
-        print '******************'
+        print('******************')
         js = response.json()
-        print 'paging:'+ str(js['Paging'])
+        print('paging:'+ str(js['Paging']))
     
         total_records = js['Paging']['TotalRecords']
     
         return total_records, response
     else:
-        print 'request failed with params ', params
+        print('request failed with params ', params)
 
 
 def dataframe_from_json(js):
@@ -83,7 +83,7 @@ def dataframe_from_json(js):
         data as pandas dataframe
     '''
     df = pd.DataFrame(js['Results'])
-    print 'records: ', len(df)
+    print('records: ', len(df))
 
     df['latitude'] = df['Property'].apply(lambda x: float(x['Address']['Latitude']))
     df['longitude'] = df['Property'].apply(lambda x: float(x['Address']['Longitude']))
@@ -92,7 +92,7 @@ def dataframe_from_json(js):
              
     df['type'] = df['Building'].apply(lambda x:x['Type'] if 'Type' in x.keys() else None)
     
-    print 'records final: ', len(df)        
+    print('records final: ', len(df))
     return df
 
 def append_records(params, dfs):
@@ -103,10 +103,10 @@ def append_records(params, dfs):
         (concatenated old+new records)
     since the api can't return more than 200 records at a time, recursively calls itself on two halves of the rectangle it originally wanted to fetch, until each call returns less than 200 records
     '''
-    print 'n records fetched to date ', len(dfs)
+    print('n records fetched to date ', len(dfs))
     
     total_records, response = get_response(params)
-    print 'new records fetched : ', total_records
+    print('new records fetched : ', total_records)
 
     if total_records <= 200:
             # appending records from current rectangle
@@ -136,7 +136,7 @@ def get_records(params):
     dfs = append_records(params, dfs)
     df = pd.concat(dfs, axis=0)
     df = df.drop_duplicates(subset=['Id']) # !tolerance conf.EPSILON will create duplicate records
-    print 'retrieved ', len(df), ' records '
+    print('retrieved ', len(df), ' records ')
     return df
 
 def save(df):
@@ -145,6 +145,15 @@ def save(df):
     '''
     date = str(datetime.datetime.now().date())
     save_path = os.path.join(conf.DATA_PATH, 'listings_%s.csv'%date)
-    print 'saving to ', save_path
+    print('saving to ', save_path)
     df.to_csv(save_path, encoding='utf-8')
 
+def load():
+    save_dir = conf.DATA_PATH
+    files = [os.path.join(save_dir, f) for f in os.listdir(save_dir) if os.path.isfile(os.path.join(save_dir, f))]
+    data = dict()
+    for f in files:
+        # Read the file and append the data
+        if f[-4:] == '.csv':
+            data[f] = pd.read_csv(f)
+    return data
