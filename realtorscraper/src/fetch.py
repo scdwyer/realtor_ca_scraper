@@ -134,17 +134,21 @@ def get_records(params):
     '''
     dfs = []
     dfs = append_records(params, dfs)
-    df = pd.concat(dfs, axis=0)
+    df = pd.concat(dfs, axis=0, sort=True)
     df = df.drop_duplicates(subset=['Id']) # !tolerance conf.EPSILON will create duplicate records
     print('retrieved ', len(df), ' records ')
     return df
 
-def save(df):
+def save(df, filetag=None):
     '''
     writing dataframe to csv
     '''
     date = str(datetime.datetime.now().date())
-    save_path = os.path.join(conf.DATA_PATH, 'listings_%s.csv'%date)
+    fname = 'listings'
+    if filetag is not None:
+        fname += '_{}'.format(filetag)
+    fname += '_{}.csv'.format(date)
+    save_path = os.path.join(conf.DATA_PATH, fname)
     print('saving to ', save_path)
     df.to_csv(save_path, encoding='utf-8')
 

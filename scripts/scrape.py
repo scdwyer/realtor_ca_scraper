@@ -15,7 +15,7 @@ import realtorscraper.src.fetch
 def main():
     parser = argparse.ArgumentParser(description='Retrieves listings from realtor.ca')
     parser.add_argument('--location', type=str, default='okotoks',
-                            help='key fron LOCATIONS in etc/conf.py')
+                            help='key from LOCATIONS in etc/conf.py')
     args = parser.parse_args()
     print('fetching listings for location : ', args.location)
     #retrieving params for request
@@ -25,7 +25,7 @@ def main():
     
     df = realtorscraper.src.fetch.get_records(params)
     
-    realtorscraper.src.fetch.save(df)
+    realtorscraper.src.fetch.save(df, filetag=args.location)
 
 if __name__=='__main__':
     main()
